@@ -1,0 +1,1 @@
+[{"Attivit\u00e0": "fgu", "Inizio": "14:00", "durata": 24}, {"Attivit\u00e0": "lavorare duro", "Inizio": "21:00", "durata": 4000}, {"Attivit\u00e0": "jang", "Inizio": "00:00", "durata": 60}]
