@@ -80,8 +80,72 @@ def creaAttività():
     inizio_str = f'{inizio:02d}:00'
     diz={'Attività': attività, 'Inizio': inizio_str, 'durata': int(durata)}
     return diz
+
+
+
+def cercaAttivitàSettimanale(arch,a):
+    #cerca un'attività settimanale nell'archivio e la restituisce con giorno e ora
+    for giorno in arch:
+        for attività in giorno.values():
+            for elemento in attività:
+                if "Attività" in elemento and elemento["Attività"] == a:
+                    giorno_attività = list(giorno.keys())[0]
+                    ora_inizio = elemento["Inizio"]
+                    durata = elemento["durata"]
+                    return giorno_attività, ora_inizio, durata
+                else:
+                    return -1
+
+
+def cerca_prossimi_eventi(arch):
+    oggi = datetime.today().weekday()  # Ottieni il giorno della settimana (0 = lunedì, 6 = domenica)
+    giorno_successivo = (oggi + 1) % 7  # Calcola il giorno successivo (ritorna a lunedì se è domenica)
+    giorno_successivo_nome = None
+
+    for giorno in arch:
+        nome_giorno = list(giorno.keys())[0]
+
+        if giorno_successivo_nome is None:
+            giorno_successivo_nome = nome_giorno
+
+        if nome_giorno == giorno_successivo_nome:
+            attività_giorno = giorno[giorno_successivo_nome]
+            for attività in attività_giorno:
+                if "Attività" in attività:
+                    attività_nome = attività["Attività"]
+                    ora_inizio = attività["Inizio"]
+                    durata = attività["durata"]
+                    return attività_nome,ora_inizio,durata
+                    #print(f"{giorno_successivo_nome}: {attività_nome} - Inizio: {ora_inizio}, Durata: {durata} minuti")
+
+    if giorno_successivo_nome is None:
+        print("Nessuna attività trovata per il giorno successivo.")
+
+    
+
 def propremoria():
-    pass
+    attività=input("attività: ")
+    gg=input("giorno: ")
+    gg+="/"
+    mese=input("mese: ")
+    mese+="/"
+    anno=input("anno: ")
+    anno+="/"
+    try:
+        data = datetime.strptime(gg+mese+anno, "%d/%m/%Y")
+        oggi = datetime.now().date()
+
+        if data.date() == oggi:
+            print(f"Promemoria per oggi ({oggi}): {attività}")
+        elif data.date() > oggi:
+            giorni_rimanenti = (data.date() - oggi).days
+            print(f"Promemoria tra {giorni_rimanenti} giorni ({data.date()}): {attività}")
+        else:
+            print(f"La data inserita ({data.date()}) è già trascorsa.")
+    except ValueError:
+        print("assicurati che tutti i campi siano completati")
+
+
 def controllo_formato(a):
     v='abcdefghijklmnopqrstuvzywxABCDEFGHILMNOPQRSTVUYWZX'
     for i in a:
