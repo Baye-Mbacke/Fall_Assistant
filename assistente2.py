@@ -2,6 +2,7 @@ import datetime
 import json
 import speech_recognition as sr
 import pyttsx3
+import requests
 #from guizero import App, Text, TextBox, PushButton
 # Definizione delle costanti
 GIORNI_SETTIMANA = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica']
@@ -33,6 +34,33 @@ def controlloOra(a):
     if a>24 or a<0 or a==24:
         return -1
     return 1
+
+def ore():
+    ora = datetime.datetime.now()
+    ore = ora.strftime("%H:%M")
+    return ore
+
+def condizione_tempo(api_key, città):
+    url = f"http://api.weatherbit.io/v2.0/current?key={api_key}&city={città}"
+    response = requests.get(url)
+    data = response.json()
+    try:
+        weather = data["data"][0]["weather"]["description"]
+        return weather
+    except:
+        return "Impossibile ottenere le condizioni meteo"
+        
+'''
+#esempio di utilizzo
+Traduttore=Translator(from_lang="en",to_lang="it")
+api_key = "1dffac1e57e042979d7aaf9fe91f578f"
+città = "Spirano"
+tempo_di_oggi = condizione_tempo(api_key, città)
+tempo_di_oggi = Traduttore.translate(tempo_di_oggi)
+print("Oggi a", città,"c'è" + ":", tempo_di_oggi)
+'''
+
+
 
 # Funzione per la creazione di una nuova attività
 def creaAttività():

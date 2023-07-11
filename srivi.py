@@ -1,8 +1,8 @@
 import json
 diz={
-  "Come ti chiami?": "Il mio nome è Fall.",
+  "Come ti chiami?": "Il mio nome è Fall Assistant.",
   "Come stai?": "Sto bene grazie!",
-  "Che tempo fa oggi?": "Mi dispiace, non posso controllare il tempo.",
+  "Che tempo fa oggi?": "ora guardo",
   "Cosa puoi fare?": "Posso aiutarti ad organizzare a meglio la tua giornata",
   "Grazie!": "Di niente! Sono qui per aiutarti in qualsiasi momento.",
   "Creami il programma di oggi": "ok ora lo creiamo insieme",

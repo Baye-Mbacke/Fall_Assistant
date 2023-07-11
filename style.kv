@@ -1,3 +1,5 @@
+#:import hex kivy.utils.get_hex_from_color
+
 <BlackLabel@Label>:
     color: 0, 0, 0, 1
 
@@ -10,117 +12,169 @@
             size: self.size
     color: 1, 1, 1, 1
 
-<MainWindow>:
-    submit_button: submit_button
-    nome: nome
-    cognome: cognome
-    data_di_nascita: data_di_nascita
-    luogo_di_nascita: data_di_nascita
-    BoxLayout:
-        id: scatola_principale
-        canvas.before:
-            Color:
-                rgba: 0.960, 0.960, 0.863, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        orientation: "vertical"
-
-        BoxLayout:
-            id: titolo
-            size_hint_y: 0.2
-            TitleLabel:
-                font_size: 30
-                bold: True
-                text: "Fall Assistant"
-
-        BoxLayout:
-            id: varie
-            orientation: "vertical"
-
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-                BlackLabel:
-                    text: "Nome"
-                TextInput:
-                    id: nome
-                    multiline: False
-
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-                BlackLabel:
-                    text: "Cognome"
-                TextInput:
-                    id: cognome
-                    multiline: False
-
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-                BlackLabel:
-                    text: "Data di Nascita"
-                TextInput:
-                    id: data_di_nascita
-                    multiline: False
-
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-                BlackLabel:
-                    text: "Luogo di Nascita"
-                TextInput:
-                    id: luogo_di_nascita
-                    multiline: False
-            BoxLayout:
-
-        BoxLayout:
-            id: Button
-            size_hint_y: 0.1
-            Label:
-
-            Button:
-                id: submit_button
-                background_normal: ""
-                background_color: 1, 0.5, 0, 1
-                background_down: ""
-                text: "invia"
-                on_press:
-                    self.background_color = 1, 0, 0, 0.8
-                on_release:
-                    self.background_color = 1, 0.5, 0, 1
-                    root.conferma_invio_form()
-
-            Label:
 <CustomPopup>:
     invia_form: invia_form
+    eta: eta
+    scuola_lavoro: scuola_lavoro
+    hobby: hobby
+
     BoxLayout:
         orientation: "vertical"
-        BlackLabel:
-            text: "sei sicuro di inviare il form? "
+        padding: 10
+        spacing: 10
 
+        TitleLabel:
+            text: "Conferma invio form"
+        
+        BoxLayout:
+            orientation: "vertical"
+            spacing: 5
+            
+            Label:
+                text: "Età"
+            Spinner:
+                id: eta
+                values: ["< 18", "18-24", "25-34", "35-44", "45-54", "55+"]
+                size_hint: 1, None
+                height: 30
+            
+            Label:
+                text: "Scuola o Lavoro"
+            TextInput:
+                id: scuola_lavoro
+                multiline: False
+                size_hint: 1, None
+                height: 30
+            
+            Label:
+                text: "Hobby"
+            TextInput:
+                id: hobby
+                multiline: False
+                size_hint: 1, None
+                height: 30
+        
         BoxLayout:
             Button:
                 size_hint_y: None
-                height:50
+                height: 50
                 text: "Cancel"
                 on_release:
                     root.dismiss_popup()
+            
             Button:
                 id: invia_form
                 size_hint_y: None
-                height:50
+                height: 50
                 text: "Invia"
                 on_release:
                     app.root.conferma_invio_form()
                     root.dismiss_popup()
 
+<MainWindow>:
+    submit_button: submit_button
+    nome: nome
+    cognome: cognome
+    eta: eta_input
+    scuola_lavoro: scuola_lavoro_input
+    hobby: hobby_input
+    
+    BoxLayout:
+        id: scatola_principale
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        canvas.before:
+            Color:
+                rgba: 0.3, 0.6, 0.9, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        TitleLabel:
+            text: "Fall Assistant"
+        
+        BoxLayout:
+            orientation: "vertical"
+            spacing: 5
+            
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Label:
+                    text: "Nome"
+                TextInput:
+                    id: nome
+                    multiline: False
+            
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Label:
+                    text: "Cognome"
+                TextInput:
+                    id: cognome
+                    multiline: False
+            
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Label:
+                    text: "Età"
+                TextInput:
+                    id: eta_input
+                    multiline: False
+            
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Label:
+                    text: "Scuola o Lavoro"
+                TextInput:
+                    id: scuola_lavoro_input
+                    multiline: False
+            
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Label:
+                    text: "Hobby"
+                TextInput:
+                    id: hobby_input
+                    multiline: False
+
+        BoxLayout:
+            id: Button
+            size_hint_y: 0.1
+            
+            Button:
+                id: submit_button
+                size_hint_x: 0.3
+                text: "Invia"
+                background_normal: ""
+                background_color: 0.3, 0.9, 0.6, 1
+                background_down: ""
+                on_press:
+                    self.background_color = 0.3, 0.6, 0.9, 1
+                on_release:
+                    self.background_color = 0.3, 0.9, 0.6, 1
+                    root.conferma_invio_form()
+
 <SecondWindow>:
     BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        
+        TitleLabel:
+            text: "Seconda Schermata"
+        
         Label:
-            text:"seconda schermata"
+            text: "Contenuto della seconda schermata"
+        
         Button:
-            text:"torna in dietro"
+            text: "Torna Indietro"
+            size_hint: 0.5, None
+            height: 50
             on_release:
                 root.go_back()
