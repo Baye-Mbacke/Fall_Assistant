@@ -1,1 +1,1 @@
-[{"Attivit\u00e0": "fgu", "Inizio": "14:00", "durata": 24}, {"Attivit\u00e0": "lavorare duro", "Inizio": "21:00", "durata": 4000}, {"Attivit\u00e0": "jang", "Inizio": "00:00", "durata": 60}]
+[{"Attivit\u00e0": "fgu", "Inizio": "14:00", "durata": 24}, {"Attivit\u00e0": "lavorare duro", "Inizio": "21:00", "durata": 4000}, {"Attivit\u00e0": "jang", "Inizio": "00:00", "durata": 60}, {"Attivit\u00e0": "bind", "Inizio": "12:00", "durata": 34}, {"Attivit\u00e0": "wolof", "Inizio": "12:30", "durata": 30}]
