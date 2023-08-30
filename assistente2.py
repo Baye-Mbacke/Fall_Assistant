@@ -19,7 +19,7 @@ engine.setProperty('rate', 140)  # Velocità di lettura del testo
 modo="scrivo"
 
 # Funzione per la lettura del testo in voce
-def parla(text):
+def parla(text,engine):
     engine.say(text)
     engine.runAndWait()
 
@@ -33,7 +33,7 @@ def riconoscimento_comando(text, dizionario):
         return "Non ho capito la tua richiesta."
 
 #funzione per ascoltare l'utente ascolta
-def ascolta():
+def ascolta(niente):
     while True:
         r = sr.Recognizer()
         with sr.Microphone() as source:
@@ -54,7 +54,7 @@ def controlloOra(a):
 
 
 def ore():
-    ora = datetime.datetime.now()
+    ora = datetime.now()
     ore = ora.strftime("%H:%M")
     return ore
 
@@ -85,7 +85,7 @@ def creaAttività(modo):
     a="no"
     while a!="sì":
         z="che attività aggiungo?"
-        print(parla(z))
+        print(parla(z,engine))
         try:
             if modo=="scrivo":
                 attività = input("attività: ")
@@ -93,13 +93,13 @@ def creaAttività(modo):
                 attività = ascolta("attività: ")
 
             sdfg="hai detto"+str(attività)+"?"
-            print(parla(sdfg))
+            print(parla(sdfg,engine))
         except:
-            print(parla("attività non valido"))
+            print(parla("attività non valido",engine))
         a=input("sì/no")
     while True:
         b="Inserisci l' ora di inizio dell' attività"
-        print(parla(b))
+        print(parla(b,engine))
         try:
             if modo=="scrivo":
                 inizio = input("ora: ")
@@ -110,31 +110,31 @@ def creaAttività(modo):
             minuti = int(minuti)
             f=controlloOra(ora)
         except:
-            print(parla("orario non valido"))
+            print(parla("orario non valido",engine))
         if f==-1:
             sos="l'orario che hai inserito non è valido"
-            (parla(sos))
+            (parla(sos,engine))
             True
         else:
             break
     while True:
         c="quanti minuti dura?"
-        print(parla(c))
+        print(parla(c,engine))
         try:
             if modo=="scrivo":
                 durata = int(input("minuti: "))
             elif modo=="vocale":
                 durata = int(ascolta("minuti: "))
         except:
-            print(parla("minuti non validi"))
+            print(parla("minuti non validi",engine))
         if durata<0:
             sos="la durata che hai inserito non è valido"
-            print(parla(sos))
+            print(parla(sos,engine))
             True
         else:
             break
     cc="ok ho aggiunto nella tua lista delle cose da fare"+attività
-    parla(cc)
+    parla(cc,engine)
     inizio_str= f"{ora:02d}:{minuti:02d}"
     diz={'Attività': attività, 'Inizio': inizio_str, 'durata': int(durata)}
     return diz
@@ -154,42 +154,42 @@ def cercaAttivitàSettimanale(arch,a):
                 else:
                     return -1
 
+def converti_numero_a_giorno(numero):
+    giorni_settimana = {
+        0: "lunedì",
+        1: "martedì",
+        2: "mercoledì",
+        3: "giovedì",
+        4: "venerdì",
+        5: "sabato",
+        6: "domenica"
+    }
+    return giorni_settimana.get(numero)
 
-def cerca_prossimi_eventi(arch):
-    oggi = datetime.today().weekday()  # Ottieni il giorno della settimana (0 = lunedì, 6 = domenica)
-    giorno_successivo = (oggi + 1) % 7  # Calcola il giorno successivo (ritorna a lunedì se è domenica)
-    giorno_successivo_nome = None
+def cerca_prossimi_eventi(archivio):
+    oggi = date.today()
+    domani = oggi + timedelta(days=1)
+    numero_giorno = domani.weekday()
+    giorno_settimana = converti_numero_a_giorno(numero_giorno)
 
-    for giorno in arch:
-        nome_giorno = list(giorno.keys())[0]
+    if giorno_settimana in archivio[0]:
+        attivita = archivio[0][giorno_settimana]
+        risultato = f"Attività pianificate per {giorno_settimana.capitalize()}:\n"
+        for att in attivita:
+            risultato += f"- {att['Attività']}, Inizio: {att['Inizio']}, Durata: {att['durata']} minuti\n"
+    else:
+        risultato = f"Nessuna attività pianificata per {giorno_settimana.capitalize()}."
 
-        if giorno_successivo_nome is None:
-            giorno_successivo_nome = nome_giorno
+    return risultato
 
-        if nome_giorno == giorno_successivo_nome:
-            attività_giorno = giorno[giorno_successivo_nome]
-            for attività in attività_giorno:
-                if "Attività" in attività:
-                    attività_nome = attività["Attività"]
-                    ora_inizio = attività["Inizio"]
-                    durata = attività["durata"]
-                    return attività_nome,ora_inizio,durata
-                    #print(f"{giorno_successivo_nome}: {attività_nome} - Inizio: {ora_inizio}, Durata: {durata} minuti")
-
-    if giorno_successivo_nome is None:
-        print("Nessuna attività trovata per il giorno successivo.")
-
-    
-
+#per ora il promemoria non funziona
 def propremoriain(modo, dizpromemoria):
-    attività = creaAttività(modo)
-
     if modo == "scrivo":
         data_input = input("Inserisci la data (gg/mm/aaaa): ")
     elif modo == "vocale":
         data_input = ascolta("Inserisci la data (giorno mese anno): ")
         data_input = data_input.replace(" ", "/")
-
+    attività = creaAttività(modo)
     try:
         data = datetime.strptime(data_input, "%d/%m/%Y")
         dizpromemoria[data_input] = attività
@@ -232,10 +232,10 @@ def inserisci_nome(modo):
         elif modo=="vocale":
             p=ascolta("inserisci il nome")
         if len(p)==0:
-            print(parla("non hai inserito nessun nome"))
+            print(parla("non hai inserito nessun nome",engine))
             errore=True
         elif controllo_formato(p)==False:
-            print(parla('formato non valido'))
+            print(parla('formato non valido',engine))
             errore=True
         else:
             return p
@@ -247,7 +247,7 @@ def attivitàGiornaliere(l,modo):
             parla("ok")
             l.append(creaAttività(modo))
             a="Vuoi inserire un'altra attività"
-            parla(a)
+            parla(a,engine)
             if modo=="scrivo":
                 risposta = input("si/no: ")
             elif modo=="vocale":
@@ -266,7 +266,7 @@ def attivitàGiorno(giorno, d,modo):
         else:
             d[giorno] = [attività]
         a = "Vuoi inserire un'altra attività?"
-        parla(a)
+        parla(a,engine)
         if modo=="scrivo":
             risposta = input("sì/no")
         else:
@@ -288,37 +288,42 @@ def print_programma_settimana(programmaSettimanale):
             for i in range(len(attività)):
                 attività_corrente = attività[i]
                 attività_descrizione = attività_corrente["Attività"]
-                inizio = datetime.datetime.strptime(attività_corrente['Inizio'], TIME_FORMAT).strftime('%I:%M %p')
-                fine = (datetime.datetime.strptime(attività_corrente['Inizio'], TIME_FORMAT) + datetime.timedelta(minutes=attività_corrente['durata'])).strftime('%I:%M %p')
+                inizio = datetime.strptime(attività_corrente['Inizio'], TIME_FORMAT).strftime('%I:%M %p')
+                fine = (datetime.strptime(attività_corrente['Inizio'], TIME_FORMAT) + timedelta(minutes=attività_corrente['durata'])).strftime('%I:%M %p')
                 cc = "Per il giorno " + giorno + " hai da fare " + attività_descrizione + " dalle ore " + inizio + " alle " + fine
-                print(parla(cc))
+                print(parla(cc,engine))
 
 
 def mostrami_la_lista_delle_cose_da_fare(l):
     for i in range(len(l)):
         attività_descrizione = l[i]["Attività"]
-        inizio = datetime.datetime.strptime(l[i]['Inizio'], TIME_FORMAT).strftime('%I:%M %p')
-        fine = (datetime.datetime.strptime(l[i]['Inizio'], TIME_FORMAT) + datetime.timedelta(minutes=l[i]['durata'])).strftime('%I:%M %p')
+        inizio = datetime.strptime(l[i]['Inizio'], TIME_FORMAT).strftime('%I:%M %p')
+        fine = (datetime.strptime(l[i]['Inizio'], TIME_FORMAT) + timedelta(minutes=l[i]['durata'])).strftime('%I:%M %p')
         sdire="hai da fare"+attività_descrizione+"dalle ore"+inizio+"fino alle"+fine
-        print(parla(sdire))
+        print(parla(sdire,engine))
 
         
 def menuPrincipale():
     print("------------------")
-    print("MENU PRINCIPALE")
+    print("FUNZIONALITà e COMANDI")
     print("------------------")
     print("--------------------------------------------")
-    print("1- aggiungi un'attività ")
-    print("2- nuova attività settimanale ")
-    print("3- mostrami la lista delle cose da fare")
-    print("4- mostrami il programma settimanale ")
+    print("1- aggiungere un'attività alla lista delle cose da fare| comando: aggiungi nella mia lista delle cose da fare")
+    print("2- creare un nuovo programma settimanale| comando: crea un nuovo programma settimanale")
+    print("3- vedere a che ora hai un programma| comando: voglio vedere a che ora ho un programma")
+    print("4- vedere la lista delle cose da fare| comando: fammi vedere la lista delle cose da fare")
+    print("5- vedere il programma settimanale| comando: fammi vedere il programma settimanale ")
+    print("6- vedere i prossimi eventi del programma settimanale| comando: fammi vedere i prossimi eventi del programma")
+    print("7- chiedere che ore sono| comando: che ore sono?")
+    print("8- vedere a che ora hai un programma| comando: voglio sapere a che ora ho un programma")
+    print("9- sapere che tempo farà oggi?| comando: che tempo fa oggi?")
+    print("10- chiudere il programma| comando: arrivederci")
     print("--------------------------------------------")
-
-
+    
 # questa funzione è il guscio del programma la parte in cui l'utente interagisce con l'assistente
 def main(a,b,d,modo,dipromemoria):
     text="dfdf"
-    while text!="ciao":
+    while text!="arrivederci":
         try:
             if modo=="scrivo":
                 text = input("comando: ")
@@ -326,21 +331,23 @@ def main(a,b,d,modo,dipromemoria):
                 text = ascolta("comando: ")
             print('Comando vocale: ',text)
             risposta = riconoscimento_comando(text, dati_risposte)
-            print(parla(risposta))
+            print(parla(risposta,engine))
             if risposta=="ora guardo":
                 Traduttore=Translator(from_lang="en",to_lang="it")
-                città = "Spirano"
+                città = "Spirano" # è da migliorare mettendo che rileva da solo la poszione ma queta è un versione base.
                 tempo_di_oggi = condizione_tempo(città)
                 tempo_di_oggi = Traduttore.translate(tempo_di_oggi)
                 te="Oggi a"+ str(città)+"c'è" + ":", tempo_di_oggi
-                print(parla(te))
-            if risposta=="va bene ora creiamo il tuo programma":
+                print(parla(te,engine))
+            if risposta=="va bene ora creiamo il tuo programma settimanale":
                 ssss=attivitàSettimanale(b)
                 d.append(ssss)
                 datijson=json.dumps(d)
                 f=open("dizsettimana.txt","w",encoding="utf-8")
                 f.write(datijson)
                 f.close()
+            if risposta=="ecco cosa poi chiedermi":
+                print(menuPrincipale)    
             if risposta=="ok va bene":
                 attivitàGiornaliere(a,modo)
                 datijson=json.dumps(a)
@@ -352,10 +359,13 @@ def main(a,b,d,modo,dipromemoria):
             if risposta=="ecco a te la lista":
                 mostrami_la_lista_delle_cose_da_fare(a)
             if risposta=="":
-                cerca_prossimi_eventi(b)
+                evento=cerca_prossimi_eventi(d)
+                print(parla(evento,engine))
             if risposta=="sono le":
                 ora=ore()
-                print(parla(ora))
+                print(parla(ora,engine))
+            '''
+            PER ORA NON DISPONIBILE
             if risposta=="ok creiamo il tuo promemoria":
                 datattività=propremoriain(modo,dipromemoria)
                 datijson=json.dumps(datattività)
@@ -364,23 +374,26 @@ def main(a,b,d,modo,dipromemoria):
                 f.close()
             if risposta==".":
                 promemoriaout(dipromemoria)
+            '''
             if risposta=="ora guardo":
                 condizione_tempo("Spirano")
-
+            if risposta=="va bene":
+                a=input("attività da cercare:")
+                gior,orve,data=cercaAttivitàSettimanale(d,a)
+                sdenc="giorno: "+gior+"ore: "+orve+"data: "+data
         except sr.UnknownValueError:
-            print(parla('mi dispiace sono ancora in fase di sviluppo non posso rispondere a questa domanda'))
+            print(parla('mi dispiace sono ancora in fase di sviluppo non posso rispondere a questa domanda',engine))
         except sr.RequestError as e:
             print('Errore nella richiesta di riconoscimento vocale: ',e)
 
 # prima volta              
 def conoscenza(a):
-    b="ciao"+a+"Benvenuto in Spazio Tempo io sarò il tuo assistente"
-    parla(b)
+    b="ciao"+a+"Benvenuto in Fall Assistant io sarò il tuo assistente personale."
+    parla(b,engine)
 
-
-
-
-#MAIN
+#---------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------MAIN-----------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------------------------
 listaGiorno=[]
 lista2=[]
 dizSettimana={}
@@ -392,14 +405,17 @@ try:
     datijso=f.read()
     f.close()
     listaGiorno=json.loads(datijso)
+    
     f=open("dizsettimana.txt","r",encoding="utf-8")
     datijso=f.read()
     f.close()
     lista3=json.loads(datijso)
+
     f=open("dizpromemoria.txt","r",encoding="utf-8")
     datijso=f.read()
     f.close()
     dizpromemoria=json.loads(datijso)
+
 except:
     pass
 scd=0
@@ -416,16 +432,16 @@ if scd==-1:
     try:
         with open("nome_cognome.txt","w",encoding="utf-8") as c:
             cc="ciao inserisci il tuo nome e cognome:"
-            parla(cc)
+            parla(cc,engine)
             sd=inserisci_nome()
             conoscenza(sd)
             dati=json.dump(sd,c)
-            c.write(dati) 
+            c.write(dati)
     except:
         pass         
 with open("nome_cognome.txt","r",encoding="utf-8") as f:
     srt=f.read()
 if scd==0:
     ffff="bentornato"+srt
-    parla(ffff)
+    parla(ffff,engine)
 main(listaGiorno,dizSettimana,lista3,modo,dizpromemoria)

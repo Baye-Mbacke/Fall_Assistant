@@ -1,4 +1,0 @@
-Nome:
-Cognome:
-Data di Nascita:
-luogo_di_nascita:
