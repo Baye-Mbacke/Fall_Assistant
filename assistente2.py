@@ -33,7 +33,7 @@ def riconoscimento_comando(text, dizionario):
         return "Non ho capito la tua richiesta."
 
 #funzione per ascoltare l'utente ascolta
-def ascolta(niente):
+def ascolta():
     while True:
         r = sr.Recognizer()
         with sr.Microphone() as source:
@@ -43,11 +43,11 @@ def ascolta(niente):
             print(text)
             return text
         
-def controlloOra(a):
+def controlloOra(a,b):
     try:
-        ora = int(a)
-        if ora < 0 or ora >= 24:
+        if a < 0 or a > 24 or b<0 or b>60:
             return -1
+        
         return 1
     except:
         return -1
@@ -85,74 +85,155 @@ def creaAttività(modo):
     a="no"
     while a!="sì":
         z="che attività aggiungo?"
-        print(parla(z,engine))
+        print(z)
+        parla(z,engine)
         try:
             if modo=="scrivo":
                 attività = input("attività: ")
             elif modo=="vocale":
-                attività = ascolta("attività: ")
+                parla("dimmi l'attività che devi svolgere",engine)
+                print("attività: ")
+                attività = ascolta()
 
             sdfg="hai detto"+str(attività)+"?"
-            print(parla(sdfg,engine))
+            print(sdfg)
+            parla(sdfg,engine)
         except:
-            print(parla("attività non valido",engine))
+            print("attività non valido")
+            parla("attività non valido",engine)
         a=input("sì/no")
+
+
     while True:
         b="Inserisci l' ora di inizio dell' attività"
-        print(parla(b,engine))
-        try:
-            if modo=="scrivo":
-                inizio = input("ora: ")
-            elif modo=="vocale":
-                inizio = int(ascolta("ora: "))
+        print(b)
+        parla(b,engine)
+        if modo=="scrivo":
+            inizio = input("ora: (HH:MM)")
+            ora=inizio[0]+inizio[1]
+            minuti=inizio[3]+inizio[4]
+            ora = int(ora)
+            minuti = int(minuti)
+            f=controlloOra(ora,minuti)
+            if f==-1:
+                sos="l'orario che hai inserito non è valido"
+                print(sos)
+                parla(sos,engine)
+                True
+            else:
+                break
+        elif modo=="vocale":
+            parla("dimmi l'ora di di inizio",engine)
+            print("ora: ")
+            inizio = int(ascolta())
             ora, minuti = inizio.split(":")
             ora = int(ora)
             minuti = int(minuti)
             f=controlloOra(ora)
-        except:
-            print(parla("orario non valido",engine))
-        if f==-1:
-            sos="l'orario che hai inserito non è valido"
-            (parla(sos,engine))
-            True
-        else:
-            break
+            if f==-1:
+                sos="l'orario che hai inserito non è valido"
+                print(sos)
+                parla(sos,engine)
+                True
+            else:
+                break
+            
+        
     while True:
-        c="quanti minuti dura?"
-        print(parla(c,engine))
+        print("quanti minuti dura?")
+        parla("quanti minuti dura?",engine)
         try:
             if modo=="scrivo":
                 durata = int(input("minuti: "))
             elif modo=="vocale":
-                durata = int(ascolta("minuti: "))
+                parla("dimmi quanti minuti dura l'attività",engine)
+                print("minuti: ")
+                durata = int(ascolta())
         except:
-            print(parla("minuti non validi",engine))
+            print("minuti non validi")
+            parla("minuti non validi",engine)
         if durata<0:
             sos="la durata che hai inserito non è valido"
-            print(parla(sos,engine))
+            print(sos)
+            parla(sos,engine)
             True
         else:
             break
     cc="ok ho aggiunto nella tua lista delle cose da fare"+attività
+    print(cc)
     parla(cc,engine)
+
     inizio_str= f"{ora:02d}:{minuti:02d}"
     diz={'Attività': attività, 'Inizio': inizio_str, 'durata': int(durata)}
     return diz
 
+# Funzione per la creazione di un nuovo programma settimanale
+def attivitàSettimanale(d):
+    for giorno in GIORNI_SETTIMANA:
+        vfi='Creazione del programma per il'+ giorno
+        print(vfi)
+        parla(vfi,engine)
+        attivitàGiorno(giorno, d,modo)
+    return d
 
+def cercaGiornoAttivitàSettimanale(arch, modo):
+    # Cerca un'attività settimanale nell'archivio e la restituisce con giorno e ora
+    giorno_attività, ora_inizio, durata = None, None, None
 
-def cercaAttivitàSettimanale(arch,a):
-    #cerca un'attività settimanale nell'archivio e la restituisce con giorno e ora
+    if modo == "scrivo":
+        a = input("Attività: ")
+    elif modo == "vocale":
+        parla("Dimmi l'attività da cercare", engine)
+        print("Attività: ")
+        a = ascolta()
+
     for giorno in arch:
-        for attività in giorno.values():
+        for attività in arch.values():
             for elemento in attività:
                 if "Attività" in elemento and elemento["Attività"] == a:
                     giorno_attività = list(giorno.keys())[0]
                     ora_inizio = elemento["Inizio"]
                     durata = elemento["durata"]
                     return giorno_attività, ora_inizio, durata
-                else:
-                    return -1
+
+    # Se l'attività non è stata trovata, restituisci i valori predefiniti
+    return giorno_attività, ora_inizio, durata
+
+
+
+def eliminaProgrammaSettimanale(di):
+    di.clear()
+
+
+
+def modifica_attivita(programma_settimanale, modo):
+    if modo == "scrivo":
+        parla("Inserisci il giorno da modificare", engine)
+        giorno_da_modificare = input("Inserisci il giorno da modificare: ")
+        parla("inserisci l'attività da modificare: ", engine)
+        attivita_da_modificare = input("Inserisci l'attività da modificare: ")
+    elif modo == "vocale":
+        parla("dimmi il giorno dell'attività", engine)
+        print("Giorno da Modificare: ")
+        giorno_da_modificare = ascolta()
+        parla("Inserisci l'attività da modificare: ", engine)
+        print("Attività da modificare: ")
+        attivita_da_modificare = ascolta()
+
+    attivita_modificata = creaAttività(modo)
+
+    if giorno_da_modificare in programma_settimanale:
+        for attivita in programma_settimanale[giorno_da_modificare]:
+            if "Attività" in attivita and attivita["Attività"] == attivita_da_modificare:
+                attivita["Attività"] = attivita_modificata["Attività"]
+                attivita["Inizio"] = attivita_modificata["Inizio"]
+                attivita["durata"] = attivita_modificata["durata"]
+                break
+
+                        
+
+
+    
 
 def converti_numero_a_giorno(numero):
     giorni_settimana = {
@@ -166,17 +247,20 @@ def converti_numero_a_giorno(numero):
     }
     return giorni_settimana.get(numero)
 
-def cerca_prossimi_eventi(archivio):
+def cerca_prossimi_eventi(programma_settimanale):
     oggi = date.today()
     domani = oggi + timedelta(days=1)
     numero_giorno = domani.weekday()
     giorno_settimana = converti_numero_a_giorno(numero_giorno)
 
-    if giorno_settimana in archivio[0]:
-        attivita = archivio[0][giorno_settimana]
+    if giorno_settimana in programma_settimanale:
+        attivita = programma_settimanale[giorno_settimana]
         risultato = f"Attività pianificate per {giorno_settimana.capitalize()}:\n"
         for att in attivita:
-            risultato += f"- {att['Attività']}, Inizio: {att['Inizio']}, Durata: {att['durata']} minuti\n"
+            desc = att["Attività"]
+            inizio = att["Inizio"]
+            durata = att["durata"]
+            risultato += f"- Attività: {desc}, Inizio: {inizio}, Durata: {durata} minuti\n"
     else:
         risultato = f"Nessuna attività pianificata per {giorno_settimana.capitalize()}."
 
@@ -187,7 +271,9 @@ def propremoriain(modo, dizpromemoria):
     if modo == "scrivo":
         data_input = input("Inserisci la data (gg/mm/aaaa): ")
     elif modo == "vocale":
-        data_input = ascolta("Inserisci la data (giorno mese anno): ")
+        parla("dimmi la data in formato giorno mese anno",engine)
+        print("giorno mese anno: ")
+        data_input = ascolta()
         data_input = data_input.replace(" ", "/")
     attività = creaAttività(modo)
     try:
@@ -206,14 +292,21 @@ def promemoriaout(di):
             oggi = datetime.now().date()
             data = datetime.strptime(dataaa, "%d/%m/%Y")
             if data.date() == oggi:
-                print(f"Promemoria per oggi ({oggi}): {attività}")
+                bg=f"Promemoria per oggi ({oggi}): {attività}"
+                print(bg)
+                parla(bg,engine)
             elif data.date() > oggi:
                 giorni_rimanenti = (data.date() - oggi).days
-                print(f"Promemoria tra {giorni_rimanenti} giorni ({data.date()}): {attività}")
+                bg=f"Promemoria tra {giorni_rimanenti} giorni ({data.date()}): {attività}"
+                print(bg)
+                parla(bg,engine)
             else:
-                print(f"La data inserita ({data.date()}) è già trascorsa.")
+                bg=f"La data inserita ({data.date()}) è già trascorsa."
+                print(bg)
+                parla(bg,engine)
     except ValueError:
         print("assicurati che tutti i campi siano completati")
+        parla("assicurati che tutti i campi siano completati",engine)
 
 
 def controllo_formato(a):
@@ -228,14 +321,18 @@ def inserisci_nome(modo):
     errore=True
     while True:
         if modo=="scrivo":
-            p=input("inserisci il nome")
+            p=input("inserisci il nome: ")
         elif modo=="vocale":
-            p=ascolta("inserisci il nome")
+            parla("inserisci il tuo nome",engine)
+            print("Nome: ")
+            p=ascolta()
         if len(p)==0:
-            print(parla("non hai inserito nessun nome",engine))
+            print("non hai inserito nessun nome")
+            parla("non hai inserito nessun nome",engine)
             errore=True
         elif controllo_formato(p)==False:
-            print(parla('formato non valido',engine))
+            print('formato non valido')
+            parla('formato non valido',engine)
             errore=True
         else:
             return p
@@ -247,16 +344,14 @@ def attivitàGiornaliere(l,modo):
             parla("ok")
             l.append(creaAttività(modo))
             a="Vuoi inserire un'altra attività"
+            print(a)
             parla(a,engine)
             if modo=="scrivo":
                 risposta = input("si/no: ")
             elif modo=="vocale":
-                risposta = ascolta("si/no: ")
+                print("si/no: ")
+                risposta = ascolta()
     return l
-'''
-questa funzione è diversa da quella precedente 
-perchè è per la settimana mentre l'altra è gnerale
-'''
 def attivitàGiorno(giorno, d,modo):
     risposta = "sì"
     while risposta == "sì" or risposta == "va bene" or risposta == "ok" or risposta == "certo":
@@ -266,32 +361,26 @@ def attivitàGiorno(giorno, d,modo):
         else:
             d[giorno] = [attività]
         a = "Vuoi inserire un'altra attività?"
+        print(a)
         parla(a,engine)
         if modo=="scrivo":
             risposta = input("sì/no")
         else:
-            risposta = ascolta("sì/no")
-
-# Funzione per la creazione di un nuovo programma settimanale
-def attivitàSettimanale(d):
-    for giorno in GIORNI_SETTIMANA:
-        print('Creazione del programma per il', giorno)
-        attivitàGiorno(giorno, d,modo)
-    return d
-
+            print("si/no: ")
+            risposta = ascolta()
 
 # Funzioni per la visualizzazione del programma settimanale o lista delle cose da fare
-def print_programma_settimana(programmaSettimanale):
-    for giorno_attività in programmaSettimanale:
-        for giorno, attività in giorno_attività.items():
-            print('Programma per:', giorno)
-            for i in range(len(attività)):
-                attività_corrente = attività[i]
-                attività_descrizione = attività_corrente["Attività"]
-                inizio = datetime.strptime(attività_corrente['Inizio'], TIME_FORMAT).strftime('%I:%M %p')
-                fine = (datetime.strptime(attività_corrente['Inizio'], TIME_FORMAT) + timedelta(minutes=attività_corrente['durata'])).strftime('%I:%M %p')
-                cc = "Per il giorno " + giorno + " hai da fare " + attività_descrizione + " dalle ore " + inizio + " alle " + fine
-                print(parla(cc,engine))
+def print_programma_settimana(programma_settimanale):
+    for giorno, attivita in programma_settimanale.items():
+        print(f"Programma per {giorno}:")
+        for attivita_item in attivita:
+            desc = attivita_item["Attività"]
+            inizio = attivita_item["Inizio"]
+            durata = attivita_item["durata"]
+            a=f"- Attività: {desc}, Inizio: {inizio}, Durata: {durata} minuti"
+            aa=f"per {giorno} hai {desc} alle{inizio} fino alle{inizio}e{durata}"
+            print(a)
+            parla(aa,engine)
 
 
 def mostrami_la_lista_delle_cose_da_fare(l):
@@ -300,54 +389,57 @@ def mostrami_la_lista_delle_cose_da_fare(l):
         inizio = datetime.strptime(l[i]['Inizio'], TIME_FORMAT).strftime('%I:%M %p')
         fine = (datetime.strptime(l[i]['Inizio'], TIME_FORMAT) + timedelta(minutes=l[i]['durata'])).strftime('%I:%M %p')
         sdire="hai da fare"+attività_descrizione+"dalle ore"+inizio+"fino alle"+fine
-        print(parla(sdire,engine))
-
+        print(sdire)
+        parla(sdire,engine)
         
 def menuPrincipale():
-    print("------------------")
-    print("FUNZIONALITà e COMANDI")
-    print("------------------")
-    print("--------------------------------------------")
-    print("1- aggiungere un'attività alla lista delle cose da fare| comando: aggiungi nella mia lista delle cose da fare")
-    print("2- creare un nuovo programma settimanale| comando: crea un nuovo programma settimanale")
-    print("3- vedere a che ora hai un programma| comando: voglio vedere a che ora ho un programma")
-    print("4- vedere la lista delle cose da fare| comando: fammi vedere la lista delle cose da fare")
-    print("5- vedere il programma settimanale| comando: fammi vedere il programma settimanale ")
-    print("6- vedere i prossimi eventi del programma settimanale| comando: fammi vedere i prossimi eventi del programma")
-    print("7- chiedere che ore sono| comando: che ore sono?")
-    print("8- vedere a che ora hai un programma| comando: voglio sapere a che ora ho un programma")
-    print("9- sapere che tempo farà oggi?| comando: che tempo fa oggi?")
-    print("10- chiudere il programma| comando: arrivederci")
-    print("--------------------------------------------")
-    
+    print("-------------------------------")
+    print(" || FUNZIONALITà e COMANDI ||")
+    print("-------------------------------")
+    print("------------------------------------------------------------------------------------------------------------------")
+    print("1- aggiungere un'attività alla lista delle cose da fare| comando: aggiungi nella mia lista delle cose da fare    |")
+    print("2- creare un nuovo programma settimanale| comando: crea un nuovo programma settimanale                           |")
+    print("3- vedere a che ora hai un programma| comando: voglio vedere a che ora ho un programma                           |")
+    print("4- vedere la lista delle cose da fare| comando: fammi vedere la lista delle cose da fare                         |")
+    print("5- vedere il programma settimanale| comando: fammi vedere il programma settimanale                               |")
+    print("6- vedere i prossimi eventi del programma settimanale| comando: fammi vedere i prossimi eventi del programma     |")
+    print("7- chiedere che ore sono| comando: che ore sono?                                                                 |")
+    print("8- vedere a che ora hai un programma| comando: voglio sapere a che ora ho un programma                           |")
+    print("9- sapere che tempo farà oggi?| comando: che tempo fa oggi?                                                      |")
+    print("10- eliminare un programma settimanale| comando: elimina programma settimanale?                                  |")
+    print("11- modificare un programma settimanale| comando: modifica programma settimanale?                                |")  
+    print("12- chiudere il programma| comando: arrivederci                                                                  |")
+    print("-----------------------------------------------------------------------------------------------------------------")
 # questa funzione è il guscio del programma la parte in cui l'utente interagisce con l'assistente
-def main(a,b,d,modo,dipromemoria):
+def main(a,b,modo,dipromemoria):
     text="dfdf"
     while text!="arrivederci":
         try:
             if modo=="scrivo":
                 text = input("comando: ")
             else:
-                text = ascolta("comando: ")
+                print("comando: ")
+                text = ascolta()
             print('Comando vocale: ',text)
             risposta = riconoscimento_comando(text, dati_risposte)
-            print(parla(risposta,engine))
+            print(risposta)
+            parla(risposta,engine)
             if risposta=="ora guardo":
                 Traduttore=Translator(from_lang="en",to_lang="it")
                 città = "Spirano" # è da migliorare mettendo che rileva da solo la poszione ma queta è un versione base.
                 tempo_di_oggi = condizione_tempo(città)
                 tempo_di_oggi = Traduttore.translate(tempo_di_oggi)
-                te="Oggi a"+ str(città)+"c'è" + ":", tempo_di_oggi
-                print(parla(te,engine))
+                te="Oggi a "+ str(città)+" c'è" + ":", tempo_di_oggi
+                print(te)
+                parla(te,engine)
             if risposta=="va bene ora creiamo il tuo programma settimanale":
                 ssss=attivitàSettimanale(b)
-                d.append(ssss)
-                datijson=json.dumps(d)
+                datijson=json.dumps(ssss)
                 f=open("dizsettimana.txt","w",encoding="utf-8")
                 f.write(datijson)
                 f.close()
             if risposta=="ecco cosa poi chiedermi":
-                print(menuPrincipale)    
+                menuPrincipale()  
             if risposta=="ok va bene":
                 attivitàGiornaliere(a,modo)
                 datijson=json.dumps(a)
@@ -355,15 +447,27 @@ def main(a,b,d,modo,dipromemoria):
                 f.write(datijson)
                 f.close()
             if risposta=="ecco a te il programma":
-                print_programma_settimana(d)
+                print_programma_settimana(b)
             if risposta=="ecco a te la lista":
                 mostrami_la_lista_delle_cose_da_fare(a)
             if risposta=="":
-                evento=cerca_prossimi_eventi(d)
-                print(parla(evento,engine))
+                evento=cerca_prossimi_eventi(b)
+                print(evento)
+                parla(evento,engine)
             if risposta=="sono le":
                 ora=ore()
-                print(parla(ora,engine))
+                print(ora)
+                parla(ora,engine)
+            if risposta=="va bene elimino il tuo programma":
+                eliminaProgrammaSettimanale(b)
+            if risposta=="va bene ora modifichiamo il tuo programma settimanale":
+                modifica_attivita(b,modo)
+            if risposta=="va bene":
+                giorno_attività, ora_inizio, durata=cercaGiornoAttivitàSettimanale(b,modo)
+                ss=f"ce l'hai il{giorno_attività} alle {ora_inizio} fino alle{durata}"
+                print(ss)
+                parla(ss)
+                
             '''
             PER ORA NON DISPONIBILE
             if risposta=="ok creiamo il tuo promemoria":
@@ -377,14 +481,13 @@ def main(a,b,d,modo,dipromemoria):
             '''
             if risposta=="ora guardo":
                 condizione_tempo("Spirano")
-            if risposta=="va bene":
-                a=input("attività da cercare:")
-                gior,orve,data=cercaAttivitàSettimanale(d,a)
-                sdenc="giorno: "+gior+"ore: "+orve+"data: "+data
         except sr.UnknownValueError:
-            print(parla('mi dispiace sono ancora in fase di sviluppo non posso rispondere a questa domanda',engine))
+            print('mi dispiace sono ancora in fase di sviluppo non posso rispondere a questa domanda')
+            parla('mi dispiace sono ancora in fase di sviluppo non posso rispondere a questa domanda',engine)
         except sr.RequestError as e:
-            print('Errore nella richiesta di riconoscimento vocale: ',e)
+            dd='Errore nella richiesta di riconoscimento vocale: ',e
+            print(dd)
+            parla(dd,engine)
 
 # prima volta              
 def conoscenza(a):
@@ -398,26 +501,25 @@ listaGiorno=[]
 lista2=[]
 dizSettimana={}
 dizpromemoria={}
-lista3=[]
-lista3.append(dizSettimana)
 try:
-    f=open("listagiorno.txt","r",encoding="utf-8")
-    datijso=f.read()
-    f.close()
-    listaGiorno=json.loads(datijso)
-    
-    f=open("dizsettimana.txt","r",encoding="utf-8")
-    datijso=f.read()
-    f.close()
-    lista3=json.loads(datijso)
+    with open("listagiorno.txt", "r", encoding="utf-8") as f:
+        datijso = f.read()
+    listaGiorno = json.loads(datijso)
 
-    f=open("dizpromemoria.txt","r",encoding="utf-8")
-    datijso=f.read()
-    f.close()
-    dizpromemoria=json.loads(datijso)
+    with open("dizsettimana.txt", "r", encoding="utf-8") as f:
+        datijso = f.read()
+    dizSettimana = json.loads(datijso)
 
-except:
-    pass
+    with open("dizpromemoria.txt", "r", encoding="utf-8") as f:
+        datijso = f.read()
+    dizpromemoria = json.loads(datijso)
+
+except FileNotFoundError:
+    print("I file JSON non sono presenti.")
+except json.JSONDecodeError as e:
+    print(f"Errore nella decodifica JSON: {str(e)}")
+except Exception as e:
+    print(f"Errore sconosciuto: {str(e)}")
 scd=0
 try:
     with open("nome_cognome.txt","r",encoding="utf-8") as f:
@@ -433,7 +535,7 @@ if scd==-1:
         with open("nome_cognome.txt","w",encoding="utf-8") as c:
             cc="ciao inserisci il tuo nome e cognome:"
             parla(cc,engine)
-            sd=inserisci_nome()
+            sd=inserisci_nome(modo)
             conoscenza(sd)
             dati=json.dump(sd,c)
             c.write(dati)
@@ -443,5 +545,7 @@ with open("nome_cognome.txt","r",encoding="utf-8") as f:
     srt=f.read()
 if scd==0:
     ffff="bentornato"+srt
+    print(ffff)
     parla(ffff,engine)
-main(listaGiorno,dizSettimana,lista3,modo,dizpromemoria)
+#print(dizpromemoria)
+main(listaGiorno,dizSettimana,modo,dizpromemoria)
